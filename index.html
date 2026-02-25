@@ -1098,27 +1098,17 @@ function showSyncIndicator(state) {
 
 // ─── FIREBASE INIT ────────────────────────────────────────
 function initFirebase() {
-    const saved   = localStorage.getItem(FB_CONFIG_KEY);
-    const skipped = localStorage.getItem(FB_SKIPPED_KEY);
-
-    if (saved) {
-        try {
-            const config = JSON.parse(saved);
-            startFirebaseApp(config);
-            return;
-        } catch(e) { localStorage.removeItem(FB_CONFIG_KEY); }
-    }
-
-    if (skipped) {
-        // Use local mode
-        startLocalMode();
-        return;
-    }
-
-    // First time — show setup screen
-    document.getElementById('firebaseSetupScreen').style.display = 'block';
+    const config = {
+        apiKey: "AIzaSyBZI5p5lkqrkONPSWrZTyBzxoohfe9gPuE",
+        authDomain: "teachersuite-588f1.firebaseapp.com",
+        projectId: "teachersuite-588f1",
+        storageBucket: "teachersuite-588f1.firebasestorage.app",
+        messagingSenderId: "120718320779",
+        appId: "1:120718320779:web:514f0e626261dd5f3da08e"
+    };
+    localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(config));
+    startFirebaseApp(config);
 }
-
 function startFirebaseApp(config) {
     try {
         if (!firebase.apps.length) firebase.initializeApp(config);
