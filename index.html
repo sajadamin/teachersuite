@@ -1620,8 +1620,9 @@ function saveEditStudent(id) {
     s.contact     = document.getElementById('editContact').value.trim();
     s.remarks     = document.getElementById('editRemarks').value.trim();
     saveDB();
+    if(firebaseMode && currentUser) pushToCloud();
     renderStudents(); buildClassPills();
-    openStudentModal(id); // reopen view mode
+    closeModal('studentModal');
     toast(`✅ ${newFirst} ${newLast} updated!`);
 }
 
