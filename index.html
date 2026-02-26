@@ -1073,10 +1073,12 @@ async function pullFromCloud() {
             if (!db.students) db.students = [];
             if (!db.nbChecks) db.nbChecks = [];
             if (!db.tests)    db.tests    = [];
-            localStorage.setItem('teachersuite_v4', JSON.stringify(db));
+           localStorage.setItem('teachersuite_v4', JSON.stringify(db));
             refreshAllUI();
             showSyncIndicator('saved');
             toast('☁️ Data loaded from cloud!');
+            // Auto push merged data back to cloud so all devices get latest
+            await pushToCloud();
         } else {
             // No cloud data yet — push local data up
             await pushToCloud();
