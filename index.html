@@ -1488,10 +1488,7 @@ function deleteStudent(id,event){
     event.stopPropagation();
     if(!confirm('Delete this student profile?')) return;
     db.students=db.students.filter(s=>s.id!==id);
-    saveDB();
-    if(firebaseMode && currentUser) pushToCloud();
-    renderStudents(); buildClassPills(); toast('🗑️ Student removed');
-}
+    saveDB(); renderStudents(); buildClassPills(); toast('🗑️ Student removed');
 }
 function buildClassPills(){
     const classes=['All',...Object.keys(db.syllabus)];
