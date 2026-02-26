@@ -1062,14 +1062,13 @@ async function pullFromCloud() {
         const doc  = await firestoreDB.collection('users').doc(uid).get();
         if (doc.exists && doc.data().data) {
             const cloudData = JSON.parse(doc.data().data);
-            // Merge local and cloud data
             const localData = JSON.parse(localStorage.getItem('teachersuite_v4') || '{}');
-            // Merge students — combine both, avoid duplicates by id
-            const mergedStudents = [...(cloudData.students || [])];
+            // Merge students by id — keep all unique students from both
+            const allStudents = [...(cloudData.students || [])];
             (localData.students || []).forEach(s => {
-                if (!mergedStudents.find(cs => cs.id === s.id)) mergedStudents.push(s);
+                if (!allStudents.find(cs => cs.id === s.id)) allStudents.push(s);
             });
-            cloudData.students = mergedStudents;
+            cloudData.students = allStudents;
             db = cloudData;
             if (!db.students) db.students = [];
             if (!db.nbChecks) db.nbChecks = [];
