@@ -1028,6 +1028,7 @@ const FB_SKIPPED_KEY  = 'teachersuite_fb_skipped';
 // Always saves locally. If Firebase connected, also syncs to cloud.
 function saveDB() {
     localStorage.setItem('teachersuite_v4', JSON.stringify(db));
+    localStorage.setItem('teachersuite_local_time', new Date().toISOString());
     if (firebaseMode && currentUser) {
         schedulCloudSync();
     }
@@ -1058,29 +1059,29 @@ async function pushToCloud() {
 async function pullFromCloud() {
     try {
         showSyncIndicator('syncing');
-        const uid  = currentUser.uid;
-        const doc  = await firestoreDB.collection('users').doc(uid).get();
+        const uid = currentUser.uid;
+        const doc = await firestoreDB.collection('users').doc(uid).get();
         if (doc.exists && doc.data().data) {
-            const cloudData = JSON.parse(doc.data().data);
-            const localData = JSON.parse(localStorage.getItem('teachersuite_v4') || '{}');
-            // Merge all data — keep unique records from both devices
-            const mergeById = (a, b) => { const m=[...(a||[])]; (b||[]).forEach(x=>{ if(!m.find(c=>c.id===x.id)) m.push(x); }); return m; };
-            cloudData.students = mergeById(cloudData.students, localData.students);
-            cloudData.tests    = mergeById(cloudData.tests,    localData.tests);
-            cloudData.nbChecks = mergeById(cloudData.nbChecks, localData.nbChecks);
-            const allLogs=[...(cloudData.logs||[])]; (localData.logs||[]).forEach(l=>{ if(!allLogs.find(cl=>cl.date===l.date&&cl.cls===l.cls&&cl.ex===l.ex&&cl.fa===l.fa)) allLogs.push(l); }); cloudData.logs=allLogs;
-            db = cloudData;
-            if (!db.students) db.students = [];
-            if (!db.nbChecks) db.nbChecks = [];
-            if (!db.tests)    db.tests    = [];
-           localStorage.setItem('teachersuite_v4', JSON.stringify(db));
+            const cloudData    = JSON.parse(doc.data().data);
+            const cloudTime    = doc.data().updatedAt || '0';
+            const localRaw     = localStorage.getItem('teachersuite_v4');
+            const localTime    = localStorage.getItem('teachersuite_local_time') || '0';
+            // Use whichever is newer — cloud or local
+            if (cloudTime >= localTime) {
+                db = cloudData;
+                if (!db.students) db.students = [];
+                if (!db.nbChecks) db.nbChecks = [];
+                if (!db.tests)    db.tests    = [];
+                localStorage.setItem('teachersuite_v4', JSON.stringify(db));
+                localStorage.setItem('teachersuite_local_time', cloudTime);
+            } else {
+                // Local is newer — push local to cloud
+                await pushToCloud();
+            }
             refreshAllUI();
             showSyncIndicator('saved');
-            toast('☁️ Data loaded from cloud!');
-            // Auto push merged data back to cloud so all devices get latest
-            await pushToCloud();
+            toast('☁️ Synced with cloud!');
         } else {
-            // No cloud data yet — push local data up
             await pushToCloud();
             toast('☁️ Local data backed up to cloud!');
         }
